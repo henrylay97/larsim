@@ -23,6 +23,7 @@ namespace cheat {
                                           << "Is this file real data?";
     }
     fSimChannels.clear();
+    fRollupMap.clear();
     this->PrepSimChannels(evt);
     //this->PrepAllHitList ( evt ); //This line temporarily commented out until I figure out how I want PrepAllHitList to work.
   }
@@ -58,25 +59,41 @@ namespace cheat {
     art::fill_ptr_vector(mcParticleVec, mcParticlesHandle);
 
     std::map<int,art::Ptr<simb::MCParticle>> trackIDToMCMap;
+    std::map<int, bool> is_delta;
 
     for(auto const &mc : mcParticleVec)
-      trackIDToMCMap[mc->TrackId()] = mc;
+      {
+	trackIDToMCMap[mc->TrackId()] = mc;
+	is_delta[mc->TrackId()] = (mc->Process() == "muIoni");
+      }
 
     for(auto &[trackId, mc] : trackIDToMCMap)
       {
 	int origId = trackId;
 	int id = trackId;
-	
-	if(mc->PdgCode() == 11 || mc->PdgCode() == 22)
+
+	if(std::abs(mc->PdgCode()) == 11 || mc->PdgCode() == 22)
 	  {
-	    while(trackIDToMCMap[mc->Mother()]->PdgCode() == 11 || trackIDToMCMap[mc->Mother()]->PdgCode() == 22)
+	    if(trackIDToMCMap.find(mc->Mother()) != trackIDToMCMap.end())
 	      {
-		id = mc->Mother();
-		mc = trackIDToMCMap[id];
+		while(std::abs(trackIDToMCMap[mc->Mother()]->PdgCode()) == 11 || trackIDToMCMap[mc->Mother()]->PdgCode() == 22)
+		  {
+		    mc = trackIDToMCMap[mc->Mother()];
+		    id = mc->TrackId();
+
+		    if(trackIDToMCMap.find(mc->Mother()) == trackIDToMCMap.end()){
+		      break;
+		    }
+		  }
+		if(is_delta[id]) 
+		  {
+		    mc = trackIDToMCMap[mc->Mother()];
+		    id = mc->TrackId();
+		  }
 	      }
 	  }
-
-        fRollupMap[origId] = id;
+	
+	fRollupMap[origId] = id;
       }
   }
 

@@ -55,6 +55,7 @@ namespace cheat {
   BackTracker::ClearEvent()
   {
     fSimChannels.clear();
+    fRollupMap.clear();
     //    fAllHitList.clear();
   }
 
