@@ -88,6 +88,9 @@ namespace cheat {
     template <typename Evt>
     void PrepSimChannels(const Evt& evt);
 
+    template <typename Evt>
+    void MakeRollupMap(const Evt& evt);
+
     //-----------------------------------------------------
     template <typename Evt>
     bool
@@ -258,6 +261,11 @@ namespace cheat {
       detinfo::DetectorClocksData const& clockData,
       std::vector<art::Ptr<recob::Hit>> const& hits) const;
 
+    int GetRolledUpMotherID(const int &id) const
+    {
+      return fRollupMap[id];
+    }
+
   private:
     const cheat::ParticleInventory* fPartInv; // The constructor needs to put something in here
     const geo::GeometryCore* fGeom;
@@ -269,6 +277,7 @@ namespace cheat {
     const double fHitTimeRMS;
 
     mutable std::vector<art::Ptr<sim::SimChannel>> fSimChannels;
+    mutable std::map<int, int> fRollupMap;
 
   }; // end class BackTracker
 

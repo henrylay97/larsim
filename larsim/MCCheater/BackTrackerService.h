@@ -136,12 +136,15 @@ namespace cheat {
     std::vector<double> SpacePointToXYZ(detinfo::DetectorClocksData const& clockData,
                                         art::Ptr<recob::SpacePoint> const& spt) const;
 
+    int GetRolledUpMotherID(const int &id) const;
+
   private:
     const art::Event* fEvt = nullptr;
 
     // Prep functions go here.
     void priv_PrepEvent(const art::Event& evt, art::ScheduleContext);
     void priv_PrepSimChannels(const art::Event& evt);
+    void priv_MakeRollupMap(const art::Event& evt);
     //      void priv_PrepAllHitList ();
     void priv_PrepFailed();
 

@@ -66,6 +66,7 @@ namespace cheat {
     BackTracker::ClearEvent();
     if (!this->priv_CanRun(evt)) { return; }
     this->priv_PrepSimChannels(evt);
+    this->priv_MakeRollupMap(evt);
     fEvt = nullptr; // don't save the pointer because it will be useless after this
                     // anyways. I want to make sure calls at the wrong time crash.
   }
@@ -99,6 +100,20 @@ namespace cheat {
       mf::LogWarning("BackTrackerService")
         << "Rebuild failed to get the SimChannels. This is expected when running on a generation "
            "or simulation step.";
+    }
+  }
+
+  //---------------------------------------------------------------------
+  void
+  BackTrackerService::priv_MakeRollupMap(const art::Event& evt)
+  {
+    if (!this->priv_CanRun(evt)) { this->priv_PrepFailed(); }
+    try {
+      BackTracker::MakeRollupMap(evt);
+    }
+    catch (...) {
+      mf::LogWarning("BackTrackerService")
+        << "Failed to build rollup map";
     }
   }
 
@@ -451,6 +466,13 @@ namespace cheat {
            "backtracker lazy loading.";
     }
     return BackTracker::SpacePointToXYZ(clockData, spt, *fEvt);
+  }
+
+  //---------------------------------------------------------------------
+  int
+  BackTrackerService::GetRolledUpMotherID(const int &id) const
+  {
+    return BackTracker::GetRolledUpMotherID(id);
   }
 
   DEFINE_ART_SERVICE(BackTrackerService)

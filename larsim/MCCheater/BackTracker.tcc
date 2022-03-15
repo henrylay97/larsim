@@ -47,6 +47,40 @@ namespace cheat {
   }
 
   //--------------------------------------------------------------------
+  template <typename Evt>
+  void
+  BackTracker::MakeRollupMap(const Evt& evt)
+  {
+    const auto& mcParticlesHandle =
+      evt.template getValidHandle<std::vector<simb::MCParticle>>(fG4ModuleLabel);
+
+    std::vector<art::Ptr<simb::MCParticle>> mcParticleVec;
+    art::fill_ptr_vector(mcParticleVec, mcParticlesHandle);
+
+    std::map<int,art::Ptr<simb::MCParticle>> trackIDToMCMap;
+
+    for(auto const &mc : mcParticleVec)
+      trackIDToMCMap[mc->TrackId()] = mc;
+
+    for(auto &[trackId, mc] : trackIDToMCMap)
+      {
+	int origId = trackId;
+	int id = trackId;
+	
+	if(mc->PdgCode() == 11 || mc->PdgCode() == 22)
+	  {
+	    while(trackIDToMCMap[mc->Mother()]->PdgCode() == 11 || trackIDToMCMap[mc->Mother()]->PdgCode() == 22)
+	      {
+		id = mc->Mother();
+		mc = trackIDToMCMap[id];
+	      }
+	  }
+
+        fRollupMap[origId] = id;
+      }
+  }
+
+  //--------------------------------------------------------------------
   /*  template<typename Evt>
       void BackTracker::PrepAllHitList( const Evt& evt){
       if(this->AllHitListReady()){return;}
