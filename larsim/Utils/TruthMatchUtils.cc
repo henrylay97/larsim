@@ -176,7 +176,7 @@ TruthMatchUtils::FillG4IDToEnergyDepositMap(IDToEDepositMap& idToEDepMap,
 
   for (const sim::TrackIDE& trackIDE : trackIDEs) {
     const G4ID g4ID(
-      static_cast<G4ID>(rollupUnsavedIDs ? std::abs(trackIDE.trackID) : trackIDE.trackID));
+      static_cast<G4ID>(rollupUnsavedIDs ? btServ->GetRolledUpMotherID(std::abs(trackIDE.trackID)) : trackIDE.trackID));
     const EDeposit eDep(static_cast<EDeposit>(trackIDE.energy));
     auto [iterator, inserted] = idToEDepMap.try_emplace(g4ID, eDep);
     if (!inserted) iterator->second += eDep;
