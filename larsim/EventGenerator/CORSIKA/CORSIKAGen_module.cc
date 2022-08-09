@@ -730,57 +730,7 @@ namespace evgen{
     // loop over particles in the truth object
     for(int i = 0; i < pretruth.NParticles(); ++i){
       simb::MCParticle particle = pretruth.GetParticle(i);
-      const TLorentzVector& v4 = particle.Position();
-      const TLorentzVector& p4 = particle.Momentum();
-      double x0[3] = {v4.X(),  v4.Y(),  v4.Z() };
-      double dx[3] = {p4.Px(), p4.Py(), p4.Pz()};
-
-      // now check if the particle goes through any cryostat in the detector
-      // if so, add it to the truth object.
-      for(unsigned int c = 0; c < geom->Ncryostats(); ++c){
-        double bounds[6] = {0.};
-        geom->CryostatBoundaries(bounds, c);
-
-        //add a buffer box around the cryostat bounds to increase the acceptance and account for scattering
-        //By default, the buffer box has zero size
-        for (unsigned int cb=0; cb<6; cb++)
-           bounds[cb] = bounds[cb]+fBuffBox[cb];
-
-        //calculate the intersection point with each cryostat surface
-        bool intersects_cryo = false;
-        for (int bnd=0; bnd!=6; ++bnd) {
-          if (bnd<2) {
-            double p2[3] = {bounds[bnd],  x0[1] + (dx[1]/dx[0])*(bounds[bnd] - x0[0]), x0[2] + (dx[2]/dx[0])*(bounds[bnd] - x0[0])};
-            if ( p2[1] >= bounds[2] && p2[1] <= bounds[3] &&
-                 p2[2] >= bounds[4] && p2[2] <= bounds[5] ) {
-              intersects_cryo = true;
-              break;
-            }
-          }
-          else if (bnd>=2 && bnd<4) {
-            double p2[3] = {x0[0] + (dx[0]/dx[1])*(bounds[bnd] - x0[1]), bounds[bnd], x0[2] + (dx[2]/dx[1])*(bounds[bnd] - x0[1])};
-            if ( p2[0] >= bounds[0] && p2[0] <= bounds[1] &&
-                 p2[2] >= bounds[4] && p2[2] <= bounds[5] ) {
-              intersects_cryo = true;
-        break;
-            }
-          }
-          else if (bnd>=4) {
-            double p2[3] = {x0[0] + (dx[0]/dx[2])*(bounds[bnd] - x0[2]), x0[1] + (dx[1]/dx[2])*(bounds[bnd] - x0[2]), bounds[bnd]};
-            if ( p2[0] >= bounds[0] && p2[0] <= bounds[1] &&
-                 p2[1] >= bounds[2] && p2[1] <= bounds[3] ) {
-              intersects_cryo = true;
-        break;
-            }
-          }
-        }
-
-        if (intersects_cryo){
           truth.Add(particle);
-          break; //leave loop over cryostats to avoid adding particle multiple times
-        }// end if particle goes into a cryostat
-      }// end loop over cryostats in the detector
-
     }// loop on particles
 
     mf::LogInfo("CORSIKAGen")<<"Number of particles from getsample crossing cryostat + bounding box: "<<truth.NParticles()<<"\n";
