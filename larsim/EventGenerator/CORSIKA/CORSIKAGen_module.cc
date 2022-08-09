@@ -788,6 +788,10 @@ namespace evgen{
     truthcol->push_back(truth);
     evt.put(std::move(truthcol));
 
+    std::cout << std::endl
+	      << "Total Particles: " << pretruth.NParticles() << std::endl
+	      << "Number Kept:     " << truth.NParticles() << std::endl;
+
     return;
   }// end produce
 
