@@ -265,7 +265,12 @@ namespace evgen {
     int fShowerInputs=0; ///< Number of shower inputs to process from
     std::vector<double> fNShowersPerEvent; ///< Number of showers to put in each event of duration fSampleTime; one per showerinput
     std::vector<int> fMaxShowers; //< Max number of showers to query, one per showerinput
-    double fShowerBounds[6]={0.,0.,0.,0.,0.,0.}; ///< Boundaries of area over which showers are to be distributed (x(min), x(max), _unused_, y, z(min), z(max) )
+    double fShowerBounds[6]={ std::numeric_limits<double>::max(),
+			      -std::numeric_limits<double>::max(),
+			      std::numeric_limits<double>::max(),
+			      -std::numeric_limits<double>::max(),
+			      std::numeric_limits<double>::max(),
+			      -std::numeric_limits<double>::max()}; ///< Boundaries of area over which showers are to be distributed (x(min), x(max), _unused_, y, z(min), z(max) )
     double fToffset_corsika=0.; ///< Timing offset to account for propagation time through atmosphere, populated from db
     ifdh_ns::ifdh* fIFDH=0; ///< (optional) flux file handling
 
@@ -494,13 +499,20 @@ namespace evgen{
 
     //compute shower area based on the maximal x,z dimensions of cryostat boundaries + fShowerAreaExtension
     art::ServiceHandle<geo::Geometry const> geom;
-    for(unsigned int c = 0; c < geom->Ncryostats(); ++c){
-      double bounds[6] = {0.};
-      geom->CryostatBoundaries(bounds, c);
+    for(unsigned int a = 0; a < geom->NAuxDets(); ++a){
+      double centre[3] = {0.};
+      geo::AuxDetGeo const& auxDet = geom->AuxDet(a);
+      auxDet.GetCenter(centre, 0);
+      double bounds[6] = { centre[0] - auxDet.HalfWidth1(), centre[0] + auxDet.HalfWidth1(),
+			   centre[1] - auxDet.HalfHeight(), centre[1] + auxDet.HalfHeight(),
+			   centre[2] - (auxDet.Length() / 2.), centre[2] + (auxDet.Length() / 2.)};
       for (unsigned int bnd = 0; bnd<6; bnd++){
-        mf::LogVerbatim("CORSIKAGen")<<"Cryo Boundary: "<<bnd<<"="<<bounds[bnd]<<" ( + Buffer="<<fBuffBox[bnd]<<")\n";
-        if(fabs(bounds[bnd])>fabs(fShowerBounds[bnd])){
-          fShowerBounds[bnd]=bounds[bnd];
+        mf::LogVerbatim("CORSIKAGen")<<"AuxDet Boundary: "<<bnd<<"="<<bounds[bnd]<<" ( + Buffer="<<fBuffBox[bnd]<<")\n";
+        if(bnd % 2 == 0 && bounds[bnd] < fShowerBounds[bnd]){
+	  fShowerBounds[bnd]=bounds[bnd];
+	}
+	else if(bnd % 2 == 1 && bounds[bnd] > fShowerBounds[bnd]){
+	  fShowerBounds[bnd]=bounds[bnd];
         }
       }
     }
