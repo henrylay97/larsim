@@ -12,18 +12,19 @@
 // Ben Jones, MIT, March 2010
 
 
-#include <string>
-#include <iostream>
-
 #ifndef LArG4Parameters_h
 #define LArG4Parameters_h 1
 
-#include "fhiclcpp/ParameterSet.h"
-#include "art/Framework/Services/Registry/ActivityRegistry.h"
-#include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
-#include "art/Framework/Services/Registry/ServiceHandle.h"
-
 #include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h"
+
+namespace fhicl {
+  class ParameterSet;
+}
+
+#include "art/Framework/Services/Registry/ServiceDeclarationMacros.h"
+
+#include <string>
+#include <vector>
 
 namespace sim {
 
@@ -49,8 +50,10 @@ namespace sim {
     double LarqlChi0D()                                       const { return fLarqlChi0D;             }
     double LarqlAlpha()                                       const { return fLarqlAlpha;             }
     double LarqlBeta()                                        const { return fLarqlBeta;              }
+    double Wph()                                              const { return fWph;                    }
     bool   UseModBoxRecomb()                                  const { return fUseModBoxRecomb;        }
     bool   UseModLarqlRecomb()                                const { return fUseModLarqlRecomb;      }
+    bool   UseBinomialFlucts()                                const { return fUseBinomialFlucts;      }
     double GeVToElectrons()                                   const { return util::kGeVToElectrons;   }
     double LongitudinalDiffusion()                            const { return fLongitudinalDiffusion;  }
     double TransverseDiffusion()                              const { return fTransverseDiffusion;    }
@@ -111,8 +114,10 @@ namespace sim {
     double const             fLarqlChi0D;            ///< Possibly override the LarqlChi0D parameter
     double const             fLarqlAlpha;            ///< Possibly override the LarqlAlpha parameter
     double const             fLarqlBeta;             ///< Possibly override the LarqlBeta parameter
+    double const             fWph;                   ///< Possibly override the Wph parameter
     bool const               fUseModBoxRecomb;       ///< Use Modified Box model recombination instead of Birks
     bool const               fUseModLarqlRecomb;     ///< Use LArQL model recombination correction (dependence on EF)
+    bool const               fUseBinomialFlucts;     ///< Use binomial fluctuations in correlated method
     std::string const        fIonAndScintCalculator; ///< Name of algorithm to use to calculate the number of
                                                      ///< ionization electrons and scintillation photons
                                                      ///< for each G4 step, used by
@@ -133,7 +138,6 @@ namespace sim {
     bool const fNoPhotonPropagation;    ///< specifically prevents photon propagation in opfast
   };
 }
-
 
 DECLARE_ART_SERVICE(sim::LArG4Parameters, SHARED)
 #endif

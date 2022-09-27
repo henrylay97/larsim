@@ -20,13 +20,16 @@
 ////////////////////////////////////////////////////////////////////////
 
 // LArSoft includes
-#include "larcore/CoreUtils/ServiceUtil.h"
+
 #include "lardataobj/Simulation/SimEnergyDeposit.h"
+#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
+#include "larcore/CoreUtils/ServiceUtil.h"
 #include "larevt/SpaceChargeServices/SpaceChargeService.h"
 #include "larsim/IonizationScintillation/ISCalc.h"
 #include "larsim/IonizationScintillation/ISCalcCorrelated.h"
 #include "larsim/IonizationScintillation/ISCalcNESTLAr.h"
 #include "larsim/IonizationScintillation/ISCalcSeparate.h"
+
 #include "nurandom/RandomUtils/NuRandomService.h"
 
 // Framework includes
@@ -36,13 +39,17 @@
 #include "art/Framework/Principal/Handle.h"
 #include "art/Framework/Principal/Selector.h"
 #include "art/Framework/Services/Registry/ServiceHandle.h"
+#include "messagefacility/MessageLogger/MessageLogger.h"
 #include "fhiclcpp/ParameterSet.h"
 #include "canvas/Utilities/Exception.h"
+#include "canvas/Utilities/InputTag.h"
+
+#include "CLHEP/Random/RandomEngine.h"
 
 #include <iostream>
-#include <sstream> // std::stringstream, std::stringbuf
-#include <stdio.h>
+#include <sstream> // std::stringstream
 #include <string>
+#include <vector>
 
 using std::string;
 using SimEnergyDepositCollection = std::vector<sim::SimEnergyDeposit>;
@@ -82,7 +89,7 @@ namespace larg4 {
     , calcTag{pset.get<art::InputTag>("ISCalcAlg")}
     , fInputModuleLabels{pset.get<std::vector<std::string>>("InputModuleLabels", {})}
     , fEngine(art::ServiceHandle<rndm::NuRandomService>()
-                ->createEngine(*this, "HepJamesRandom", "NEST", pset, "SeedNEST"))
+              ->createEngine(*this, "HepJamesRandom", "ISCalcAlg", pset, "SeedISCalcAlg"))
     , Instances{
         pset.get<string>("Instances", "LArG4DetectorServicevolTPCActive"),
       }
@@ -123,7 +130,7 @@ namespace larg4 {
       fISAlg = std::make_unique<ISCalcSeparate>();
     else if (calcTag.label() == "Correlated") {
       auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob();
-      fISAlg = std::make_unique<ISCalcCorrelated>(detProp);
+      fISAlg = std::make_unique<ISCalcCorrelated>(detProp, fEngine);
     }
     else if (calcTag.label() == "NEST")
       fISAlg = std::make_unique<ISCalcNESTLAr>(fEngine);

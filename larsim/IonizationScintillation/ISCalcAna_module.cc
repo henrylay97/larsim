@@ -30,7 +30,7 @@
 #include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
 #include "lardata/DetectorInfoServices/LArPropertiesService.h"
 #include "lardataobj/Simulation/SimEnergyDeposit.h"
-#include "larevt/SpaceChargeServices/SpaceChargeService.h"
+#include "larevt/SpaceCharge/SpaceCharge.h"
 #include "larsim/Simulation/LArG4Parameters.h"
 
 namespace larg4 {
@@ -74,7 +74,7 @@ namespace larg4 {
       fISAlg = std::make_unique<larg4::ISCalcSeparate>();
     else if (calcTag.label() == "Correlated") {
       auto const detProp = art::ServiceHandle<detinfo::DetectorPropertiesService>()->DataForJob();
-      fISAlg = std::make_unique<larg4::ISCalcCorrelated>(detProp);
+      fISAlg = std::make_unique<larg4::ISCalcCorrelated>(detProp, fEngine);
     }
     else if (calcTag.label() == "NEST")
       fISAlg = std::make_unique<larg4::ISCalcNESTLAr>(fEngine);

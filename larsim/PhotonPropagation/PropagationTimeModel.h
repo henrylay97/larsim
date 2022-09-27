@@ -9,19 +9,25 @@
 
 // Nov 2021 by P. Green
 
+// LArSoft libraries
+#include "larsim/IonizationScintillation/ISTPC.h"
+#include "larcorealg/Geometry/BoxBoundedGeo.h"
+#include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
+
 // fhicl
 #include "fhiclcpp/ParameterSet.h"
 
-// LArSoft libraries
-#include "larsim/IonizationScintillation/ISTPC.h"
-
-// random numbers
 #include "CLHEP/Random/RandFlat.h"
+
+namespace CLHEP {
+  class HepRandomEngine;
+}
 
 // other
 #include "TVector3.h"
 #include "TF1.h"
 
+#include <array>
 #include <vector>
 
 
@@ -30,10 +36,10 @@ class PropagationTimeModel {
 public:
 
   // constructor
-  PropagationTimeModel(fhicl::ParameterSet VUVTimingParams, 
+  PropagationTimeModel(fhicl::ParameterSet VUVTimingParams,
                        fhicl::ParameterSet VISTimingParams,
-                       CLHEP::HepRandomEngine& ScintTimeEngine, 
-                       bool doReflectedLight = false, 
+                       CLHEP::HepRandomEngine& ScintTimeEngine,
+                       bool doReflectedLight = false,
                        bool GeoPropTimeOnly = false);
 
   // propagation time
@@ -48,24 +54,24 @@ private:
   void Initialization();
 
   // direct / VUV light
-  void getVUVTimes(std::vector<double>& arrivalTimes, 
-                   const double distance_in_cm, 
+  void getVUVTimes(std::vector<double>& arrivalTimes,
+                   const double distance_in_cm,
                    const size_t angle_bin);
 
-  void getVUVTimesGeo(std::vector<double>& arrivalTimes, 
+  void getVUVTimesGeo(std::vector<double>& arrivalTimes,
                       const double distance_in_cm);
-    
-  void generateParam(const size_t index, 
+
+  void generateParam(const size_t index,
                      const size_t angle_bin);
 
   // reflected / visible light
-  void getVISTimes(std::vector<double>& arrivalTimes, 
-                 const TVector3 &ScintPoint, 
+  void getVISTimes(std::vector<double>& arrivalTimes,
+                 const TVector3 &ScintPoint,
                  const TVector3 &OpDetPoint);
-  
+
   // utility functions
   double fast_acos(double x) const;
-    
+
   double interpolate(const std::vector<double>& xData,
                      const std::vector<double>& yData,
                      double x,
@@ -87,18 +93,19 @@ private:
   static double model_far(const double* x, const double* par);
 
   // fhicl parameter sets
-  fhicl::ParameterSet fVUVTimingParams;
-  fhicl::ParameterSet fVISTimingParams;
+  const fhicl::ParameterSet fVUVTimingParams;
+  const fhicl::ParameterSet fVISTimingParams;
 
   // configuration
-  bool fdoReflectedLight;
-  bool fGeoPropTimeOnly;
+  const bool fdoReflectedLight;
+  const bool fGeoPropTimeOnly;
 
   // ISTPC class
   larg4::ISTPC fISTPC;
 
   // random numbers
   CLHEP::HepRandomEngine& fScintTimeEngine;
+  CLHEP::RandFlat fUniformGen;
 
   // geometry properties
   double fplane_depth;
@@ -114,10 +121,10 @@ private:
   double fstep_size, fmax_d, fmin_d, fvuv_vgroup_mean, fvuv_vgroup_max, finflexion_point_distance, fangle_bin_timing_vuv;
   std::vector<std::vector<double>> fparameters[7];
   // vector containing generated VUV timing parameterisations
-  std::vector<std::vector<TF1>> VUV_timing;
+  std::vector<std::vector<TF1>> fVUV_timing;
   // vector containing min and max range VUV timing parameterisations are sampled to
-  std::vector<std::vector<double>> VUV_max;
-  std::vector<std::vector<double>> VUV_min;
+  std::vector<std::vector<double>> fVUV_max;
+  std::vector<std::vector<double>> fVUV_min;
 
   // For VIS propagation time parameterisation
   double fvis_vmean, fangle_bin_timing_vis;

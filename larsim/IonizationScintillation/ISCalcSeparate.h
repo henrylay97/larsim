@@ -15,17 +15,11 @@
 
 #include "larsim/IonizationScintillation/ISCalc.h"
 
-#include "lardata/DetectorInfoServices/DetectorPropertiesService.h"
-#include "lardata/DetectorInfoServices/LArPropertiesService.h"
-#include "larevt/SpaceChargeServices/SpaceChargeService.h"
-#include "larsim/Simulation/LArG4Parameters.h"
+namespace spacecharge {
+  class SpaceCharge;
+}
 
-#include "larcoreobj/SimpleTypesAndConstants/PhysicalConstants.h"
-#include "larcoreobj/SimpleTypesAndConstants/geo_vectors.h"
-#include <vector>
-
-#include "CLHEP/Vector/ThreeVector.h"
-#include "messagefacility/MessageLogger/MessageLogger.h"
+#include <utility>
 
 namespace larg4 {
   class ISCalcSeparate : public ISCalc {
@@ -48,12 +42,11 @@ namespace larg4 {
     bool fUseModBoxRecomb;  ///< from LArG4Parameters service
 
     const spacecharge::SpaceCharge* fSCE;
-    const detinfo::LArProperties* fLArProp;
 
     double CalcIon(detinfo::DetectorPropertiesData const& detProp,
                    sim::SimEnergyDeposit const& edep);
     std::pair<double, double> CalcScint(sim::SimEnergyDeposit const& edep);
-    double GetScintYieldRatio(sim::SimEnergyDeposit const& edep);
   };
+
 }
 #endif // LARG4_ISCALCULATIONSEPARATE_H

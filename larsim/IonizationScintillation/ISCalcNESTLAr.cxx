@@ -7,12 +7,14 @@
 ////////////////////////////////////////////////////////////////////////
 
 #include "larsim/IonizationScintillation/ISCalcNESTLAr.h"
+#include "larevt/SpaceChargeServices/SpaceChargeService.h"
 #include "larcore/CoreUtils/ServiceUtil.h"
+#include "lardata/DetectorInfoServices/LArPropertiesService.h"
 #include "lardataalg/DetectorInfo/DetectorPropertiesData.h"
+#include "lardataobj/Simulation/SimEnergyDeposit.h"
 
 #include "CLHEP/Random/RandFlat.h"
 #include "CLHEP/Random/RandGauss.h"
-#include "CLHEP/Random/RandPoissonQ.h"
 #include "CLHEP/Units/SystemOfUnits.h"
 
 #include <algorithm>
@@ -31,7 +33,6 @@ namespace larg4 {
   ISCalcNESTLAr::ISCalcNESTLAr(CLHEP::HepRandomEngine& Engine)
     : fEngine(Engine)
     , fSCE{lar::providerFrom<spacecharge::SpaceChargeService>()}
-    , fLArProp{lar::providerFrom<detinfo::LArPropertiesService>()}
   {
     std::cout << "ISCalcNESTLAr Initialize." << std::endl;
   }
@@ -223,9 +224,7 @@ namespace larg4 {
   {
     geo::Point_t pos = edep.MidPoint();
     double EField = efield;
-
     geo::Vector_t eFieldOffsets;
-
     if (fSCE->EnableSimEfieldSCE()) {
       eFieldOffsets = fSCE->GetEfieldOffsets(pos);
       EField =
@@ -233,28 +232,7 @@ namespace larg4 {
                   (efield * eFieldOffsets.Y() * efield * eFieldOffsets.Y()) +
                   (efield * eFieldOffsets.Z() * efield * eFieldOffsets.Z()));
     }
-
     return EField;
   }
 
-  //......................................................................
-  double
-  ISCalcNESTLAr::GetScintYieldRatio(sim::SimEnergyDeposit const& edep)
-  {
-    if (!fLArProp->ScintByParticleType()) { return fLArProp->ScintYieldRatio(); }
-    switch (edep.PdgCode()) {
-    case 2212: return fLArProp->ProtonScintYieldRatio();
-    case 13:
-    case -13: return fLArProp->MuonScintYieldRatio();
-    case 211:
-    case -211: return fLArProp->PionScintYieldRatio();
-    case 321:
-    case -321: return fLArProp->KaonScintYieldRatio();
-    case 1000020040: return fLArProp->AlphaScintYieldRatio();
-    case 11:
-    case -11:
-    case 22: return fLArProp->ElectronScintYieldRatio();
-    default: return fLArProp->ElectronScintYieldRatio();
-    }
-  }
 }
